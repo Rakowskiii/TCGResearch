@@ -1,0 +1,22 @@
+.env
+.DS_store
+.idea
+.deps
+.sqlx
+.expo
+
+*.sql
+
+# Rust build artifacts
+target
+bindings 
+
+# Solidity build artifacts
+artifacts
+utgard/out/**
+
+# JS deps
+node_modules
+
+# Card image assets
+cards_psd

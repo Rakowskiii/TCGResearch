@@ -1,0 +1,16 @@
+{
+    "name": "Caduceus-Rex",
+    "description": "Whenever unit boards this vehicle it's power is doubled. Whenever unit leaves this vehicle, it's power is halved.",
+    "external_link": "cards.rakowskiii.com",
+    "image": "ipfs://QmXg6vAboKq4uwFRMZP72er52jmU5zYkDFAz7F51bUJQQy/5.png",
+    "attributes": [
+        {
+            "trait_type": "Vehicle",
+            "value": "Unit"
+        },
+        {
+            "trait_type": "Subtype",
+            "value": "Truck"
+        }
+    ]
+}

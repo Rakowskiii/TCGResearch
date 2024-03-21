@@ -1,0 +1,16 @@
+{
+    "name": "Can-Ga-Roox",
+    "description": "Whenever this unit deals dmg it recovers half the dmg as life.",
+    "external_link": "cards.rakowskiii.com",
+    "image": "ipfs://QmXg6vAboKq4uwFRMZP72er52jmU5zYkDFAz7F51bUJQQy/8.png",
+    "attributes": [
+        {
+            "trait_type": "Type",
+            "value": "Unit"
+        },
+        {
+            "trait_type": "Subtype",
+            "value": "Dinosaur"
+        }
+    ]
+}

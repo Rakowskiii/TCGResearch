@@ -1,0 +1,16 @@
+{
+    "name": "Shiposaur-Tx",
+    "description": "Whenever unit boards the Argo-Naut it gains 10 shield. When this shield is destroyed, the unit loses 5 life.",
+    "external_link": "cards.rakowskiii.com",
+    "image": "ipfs://QmXg6vAboKq4uwFRMZP72er52jmU5zYkDFAz7F51bUJQQy/7.png",
+    "attributes": [
+        {
+            "trait_type": "Type",
+            "value": "Vehicle"
+        },
+        {
+            "trait_type": "Subtype",
+            "value": "Ship"
+        }
+    ]
+}
