@@ -13,7 +13,10 @@ bindings
 
 # Solidity build artifacts
 artifacts
-utgard/out/**
+utgard/out
+utgard/lib/**
+utgard/cache 
+
 
 # JS deps
 node_modules
