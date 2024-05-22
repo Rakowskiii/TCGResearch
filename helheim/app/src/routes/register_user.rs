@@ -1,5 +1,4 @@
 use axum::http::StatusCode;
-use ethers::prelude::*;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,7 +13,9 @@ pub async fn handler(
 ) -> impl axum::response::IntoResponse {
     let UserRegisterData { username, password } = register_data;
 
-    if let Err(e) = crate::controllers::register_user::controller(&state, &username, &password).await {
+    if let Err(e) =
+        crate::controllers::register_user::controller(&state, &username, &password).await
+    {
         tracing::error!("Error registering user: {}", e);
         return (StatusCode::BAD_REQUEST, e.to_string());
     }

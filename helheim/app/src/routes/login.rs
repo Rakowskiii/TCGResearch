@@ -1,6 +1,5 @@
 use axum::http::header::SET_COOKIE;
 use axum::http::StatusCode;
-use ethers::prelude::*;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,10 +13,13 @@ pub async fn handler(
     axum::extract::Json(login_data): axum::extract::Json<LoginData>,
 ) -> impl axum::response::IntoResponse {
     let LoginData { username, password } = login_data;
-    let token = crate::controllers::login::controller(&state, &username, &password).await.unwrap();
+    let token = crate::controllers::login::controller(&state, &username, &password)
+        .await
+        .unwrap();
 
-
-    (StatusCode::OK, axum::response::AppendHeaders([
-        (SET_COOKIE, format!("authorization={token}"))
-    ]), ())
+    (
+        StatusCode::OK,
+        axum::response::AppendHeaders([(SET_COOKIE, format!("authorization={token}"))]),
+        (),
+    )
 }
