@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-// TODO: Add submodules to git
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -9,16 +8,16 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Cards is ERC1155, AccessControl, ERC1155Supply {
-    event NonceUsed(bytes32 nonce);
+    // Emit event when nonce is used so that it can be tracked
+    event NonceUsed(uint32 gameId, uint32 collectionId, bytes32 nonce);
 
     // Keep track of minted nonces for each game
+    //TODO: track nonce per collection
     mapping(uint32 => mapping(bytes32 => bool)) public mintedNonces;
 
     // Keep track of base URI for each collection for each game
     mapping(uint32 => mapping(uint80 => string)) private _collectionURIs;
 
-    // Describe a booster pack
-    // TODO: chain id, signatures multiple
     struct BoosterPack {
         uint256[] ids;
         bytes32 nonce;
@@ -42,11 +41,19 @@ contract Cards is ERC1155, AccessControl, ERC1155Supply {
         BoosterPack calldata boosterPack,
         bool[] memory wantPrinted
     ) public payable {
+        uint32 gameId = _getGameId(boosterPack.ids[0]);
+        uint32 collection = _getCollectionId(boosterPack.ids[0]);
+
+        require(
+            !mintedNonces[gameId][][boosterPack.nonce],
+            "TCGProt: minting already used nonce"
+        );
+
         bytes32 hash = keccak256(
             abi.encodePacked(
                 boosterPack.ids,
                 boosterPack.nonce,
-                // chainid(),
+                block.chainid,
                 address(this)
             )
         );
@@ -56,7 +63,6 @@ contract Cards is ERC1155, AccessControl, ERC1155Supply {
         );
 
         address signer = ECDSA.recover(hash, boosterPack.signature);
-        uint32 gameId = _getGameId(boosterPack.ids[0]);
         bytes32 role = keccak256(abi.encodePacked("MINTER_ROLE", gameId));
 
         require(
@@ -64,10 +70,10 @@ contract Cards is ERC1155, AccessControl, ERC1155Supply {
             "ERC1155: Some cards were not signed by valid minter for this game."
         );
 
-        for (uint8 i = 0; i < boosterPack.ids.length; i++) {
+        for (uint8 i = 1; i < boosterPack.ids.length; i++) {
             require(
                 gameId == _getGameId(boosterPack.ids[i]),
-                "ERC1155: ids are from different games"
+                "TCGProt: ids are from different games"
             );
         }
 
@@ -77,17 +83,13 @@ contract Cards is ERC1155, AccessControl, ERC1155Supply {
         }
 
         require(
-            !mintedNonces[gameId][boosterPack.nonce],
-            "ERC1155: minting already used nonce"
-        );
-        require(
             boosterPack.ids.length == wantPrinted.length,
-            "ERC1155: ids and wishlist length mismatch"
+            "TCGProt: ids and wishlist length mismatch"
         );
 
         mintedNonces[gameId][boosterPack.nonce] = true;
         _mintBatch(msg.sender, boosterPack.ids, amounts, "");
-        emit NonceUsed(boosterPack.nonce);
+        emit NonceUsed(gameId, collectionId, boosterPack.nonce);
     }
 
     // The following functions are overrides required by Solidity.
@@ -113,7 +115,7 @@ contract Cards is ERC1155, AccessControl, ERC1155Supply {
             string(
                 abi.encodePacked(
                     _collectionURIs[_getGameId(_tokenID)][
-                        _getCollection(_tokenID)
+                        _getCollectionId(_tokenID)
                     ],
                     Strings.toString(_getCardId(_tokenID))
                 )
@@ -124,29 +126,34 @@ contract Cards is ERC1155, AccessControl, ERC1155Supply {
         return uint32(id >> 224);
     }
 
-    function _getCollection(uint256 _tokenID) internal pure returns (uint80) {
-        return uint80(_tokenID >> 144);
+    function _getCollection(uint256 _tokenID) internal pure returns (uint32) {
+        return uint32(_tokenID >> 192);
     }
 
-    function _getCardRarity(uint256 _tokenID) internal pure returns (uint16) {
-        return uint16(_tokenID >> 128);
+    function getCardMeta(uint256 _tokenID) internal pure returns (uint160) {
+        return uint160(_tokenID >> 32);
     }
 
-    function _getCardId(uint256 _tokenID) internal pure returns (uint128) {
-        return uint128(_tokenID);
+    function _getCardId(uint256 _tokenID) internal pure returns (uint32) {
+        return uint32(_tokenID);
     }
 
     function registerCollection(
         uint32 gameId,
-        uint80 collection,
+        uint32 collection,
         string memory collectionCID
     ) public {
+        require(
+            bytes(_collectionURIs[gameId][collection]).length == 0,
+            "ERC1155: collection already registered"
+        );
+
         bytes32 role = keccak256(abi.encodePacked("MINTER_ROLE", gameId));
         require(
             hasRole(role, msg.sender),
             "ERC1155: must have admin role to register collection"
         );
-        // Set collectionsURIs[collection] to ipfs://<collectionCID>/\{id\}
+
         _collectionURIs[gameId][collection] = string(
             abi.encodePacked("ipfs://", collectionCID, "/")
         );
@@ -155,10 +162,17 @@ contract Cards is ERC1155, AccessControl, ERC1155Supply {
     // Opensea related stuff
     function contractURI() public pure returns (string memory) {
         string
-            memory json = '{"name": "TCG Research - v4", "description": "Research around using erc-1155 multitoken standard to fix multiple problems TCG players are facing.","image": "https://cards.rakowskiii.com/assets/collection.jpg","external_link": "https://cards.rakowskiii.com/","collaborators": []}';
+            memory json = '{"name": "TCG Research - v6", "description": "Research around using erc-1155 multitoken standard to fix multiple problems TCG players are facing.","image": "https://cards.rakowskiii.com/assets/utgard.jpg","external_link": "https://cards.rakowskiii.com/","collaborators": []}';
         return string.concat("data:application/json;utf8,", json);
     }
 }
+
+// External contract can be made as proxy, which can provide additional functionality such as
+// this - this opens the protocol to both simple card trading, as well as advanced methods of crafting
+// TODO: Remove
+//function _getCardRarity(uint256 _tokenID) internal pure returns (uint16) {
+//    return uint16(_tokenID >> 128);
+//}
 
 // function _uint2hexstr(uint256 i) public pure returns (string memory) {
 //     if (i == 0) return "0";
@@ -266,7 +280,7 @@ contract Cards is ERC1155, AccessControl, ERC1155Supply {
 
 //TODO: Remove this
 // function  getCollection(uint256 _tokenID) public pure returns (uint80) {
-//     return _getCollection(_tokenID);
+//     return _getCollectionIdId(_tokenID);
 // }
 
 // PART     CHARACTERS     BITS     RESULT

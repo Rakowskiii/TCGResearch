@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>TCG Research</title>
+		<link
+			href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+			rel="stylesheet">
+		<style>
+        .info-box {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 250px;
+        }
+    </style>
+	</head>
+	<body
+		class="bg-gray-100 flex items-center justify-center min-h-screen relative">
+		<div
+			class="bg-white p-8 rounded-lg shadow-lg border border-gray-200 w-full max-w-md">
+			<h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Register
+				Game</h1>
+			<form id="registerForm" class="space-y-6">
+				<div>
+					<label for="game_name" class="block text-sm font-medium text-gray-700">Game
+						name <span class="text-red-500">*</span></label>
+					<input type="text" name="game_name" id="game_name" required
+						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+					<span class="text-sm text-gray-500">Enter the name of your game.</span>
+				</div>
+				<div>
+					<label for="website" class="block text-sm font-medium text-gray-700">Game
+						website <span class="text-red-500">*</span></label>
+					<input type="text" name="website" id="website" required
+						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+					<span class="text-sm text-gray-500">Enter the URL of your game's
+						website.</span>
+				</div>
+				<div>
+					<label for="admin_address"
+						class="block text-sm font-medium text-gray-700">Ethereum address <span
+							class="text-red-500">*</span></label>
+					<input type="text" name="admin_address" id="admin_address" required
+						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+					<span class="text-sm text-gray-500">Ethereum address of approved booster
+						signer.</span>
+				</div>
+				<div>
+					<label for="email_admin"
+						class="block text-sm font-medium text-gray-700">Business contact <span
+							class="text-red-500">*</span></label>
+					<input type="email" name="email_admin" id="email_admin" required
+						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+					<span class="text-sm text-gray-500">Enter the business contact
+						email.</span>
+				</div>
+				<div>
+					<label for="email_user"
+						class="block text-sm font-medium text-gray-700">User contact <span
+							class="text-red-500">*</span></label>
+					<input type="email" name="email_user" id="email_user" required
+						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+					<span class="text-sm text-gray-500">Enter the user contact email.</span>
+				</div>
+				<div>
+					<label for="description"
+						class="block text-sm font-medium text-gray-700">Short description <span
+							class="text-red-500">*</span></label>
+					<textarea name="description" id="description" rows="4" required
+						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+					<span class="text-sm text-gray-500">Provide a short description of your
+						game.</span>
+				</div>
+				<div class="text-center">
+					<button type="submit"
+						class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+						Register game
+					</button>
+				</div>
+			</form>
+			<div id="success-message"
+				class="hidden mt-4 p-4 text-green-700 bg-green-100 rounded-md">
+				Thank you! Our team will reach out to the provided business contact email
+				within the next 14 days.
+			</div>
+			<div id="error-message"
+				class="hidden mt-4 p-4 text-red-700 bg-red-100 rounded-md">
+				An error occurred while registering the game. Please try again.
+			</div>
+		</div>
+		<div class="info-box bg-gray-100 p-4 rounded-lg border border-gray-300">
+			<h2 class="text-xl font-bold mb-4 text-gray-800">Already Registered?</h2>
+			<p class="text-sm text-gray-600">If you already have a game registered, get
+				started with our collection of reference implementations:</p>
+			<a href="https://github.com/your-repo-link"
+				class="text-indigo-600 hover:underline mt-2 inline-block">Visit our GitHub
+				page</a>
+		</div>
+
+		<script>
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = {
+                game_name: document.getElementById('game_name').value,
+                website: document.getElementById('website').value,
+                admin_address: document.getElementById('admin_address').value,
+                email_admin: document.getElementById('email_admin').value,
+                email_user: document.getElementById('email_user').value,
+                description: document.getElementById('description').value
+            };
+
+            fetch('http://127.0.0.1:8080/register_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if  (response.ok) {
+                    document.getElementById('registerForm').classList.add('hidden');
+                    document.getElementById('success-message').classList.remove('hidden');
+					// Take the uuid from message response. It's used to retrieve the state of registration
+                } else {
+                    document.getElementById('error-message').classList.remove('hidden');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById('error-message').classList.remove('hidden');
+            });
+        });
+    </script>
+	</body>
+</html>
